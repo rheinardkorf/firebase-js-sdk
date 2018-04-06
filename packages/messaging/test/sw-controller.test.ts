@@ -28,7 +28,7 @@ import { FirebaseError } from '@firebase/util';
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
-import { SWController } from '../src/controllers/sw-controller';
+import { ActionHandlers, SWController } from '../src/controllers/sw-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
@@ -718,6 +718,75 @@ describe('Firebase Messaging > *SWController', () => {
         'firebase-messaging-msg-type': 'notification-clicked'
       });
     });
+
+    describe('action clicks', () => {
+      it('closes notification and calls handler if it is defined', () => {
+        const event: any = {
+          notification: {
+            data: {
+              FCM_MSG: {
+                notification: {
+                  actions: [
+                    { action: 'action1', title: 'action1 title' },
+                    { action: 'action2', title: 'action2 title' }
+                  ]
+                }
+              }
+            },
+            close: sandbox.spy()
+          },
+          action: 'action1', // clicked action
+          waitUntil: sandbox.spy(),
+          stopImmediatePropagation: sandbox.spy()
+        };
+        const swController = new SWController(app);
+        const actionHandlers = {
+          action1: sandbox.spy(),
+          action2: sandbox.spy()
+        };
+        swController.setActionHandlers(actionHandlers);
+
+        swController.onNotificationClick(event);
+
+        expect(event.stopImmediatePropagation.callCount).to.equal(1);
+        expect(event.notification.close.callCount).to.equal(1);
+        expect(actionHandlers.action1.callCount).to.equal(1);
+        expect(actionHandlers.action2.callCount).to.equal(0);
+      });
+
+      it('closes notification and does nothing if handler is not defined', () => {
+        const event: any = {
+          notification: {
+            data: {
+              FCM_MSG: {
+                notification: {
+                  actions: [
+                    { action: 'action1', title: 'action1 title' },
+                    { action: 'action2', title: 'action2 title' }
+                  ]
+                }
+              }
+            },
+            close: sandbox.spy()
+          },
+          action: 'action1', // clicked action
+          waitUntil: sandbox.spy(),
+          stopImmediatePropagation: sandbox.spy()
+        };
+        const swController = new SWController(app);
+        const actionHandlers = {
+          // No handler for action1
+          action2: sandbox.spy()
+        };
+        swController.setActionHandlers(actionHandlers);
+
+        swController.onNotificationClick(event);
+
+        expect(event.stopImmediatePropagation.callCount).to.equal(1);
+        expect(event.notification.close.callCount).to.equal(1);
+        expect(actionHandlers.action2.callCount).to.equal(0);
+      });
+    });
   });
 
   describe('getNotificationData_', () => {
@@ -944,6 +1013,59 @@ describe('Firebase Messaging > *SWController', () => {
         .callsFake(async () => vapidKeyInUse);
       const pubKey = await controller.getPublicVapidKey_();
       expect(pubKey).deep.equal(vapidKeyInUse);
+    });
+  });
+
+  describe('setActionHandlers', () => {
+    it('sets action handlers', () => {
+      const swController = new SWController(app);
+      const actionHandlers: ActionHandlers = {
+        action1: async () => {
+          // action1 callback
+        },
+        action2: async () => {
+          // action2 callback
+        }
+      };
+
+      expect((swController as any).actionHandlers).to.be.null;
+      swController.setActionHandlers(actionHandlers);
+      expect((swController as any).actionHandlers).to.equal(actionHandlers);
+    });
+
+    it('throws if input is not an object', () => {
+      const swController = new SWController(app);
+      let thrownError;
+      try {
+        swController.setActionHandlers('' as any);
+      } catch (err) {
+        thrownError = err;
+      }
+
+      expect(thrownError).to.exist;
+      expect(thrownError.code).to.equal(
+        'messaging/action-handlers-object-expected'
+      );
+    });
+
+    it('throws if a property of the input is not a function', () => {
+      const swController = new SWController(app);
+      let thrownError;
+      try {
+        swController.setActionHandlers({
+          action1: () => {
+            // action1 callback
+          },
+          action2: 'invalid property'
+        } as any);
+      } catch (err) {
+        thrownError = err;
+      }
+
+      expect(thrownError).to.exist;
+      expect(thrownError.code).to.equal(
+        'messaging/action-handlers-function-expected'
+      );
     });
   });
 });

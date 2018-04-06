@@ -36,8 +36,13 @@ declare const self: ServiceWorkerGlobalScope;
 
 const FCM_MSG = 'FCM_MSG';
 
+export interface ActionHandlers {
+  [key: string]: (event: NotificationEvent) => Promise<void>;
+}
+
 export class SWController extends ControllerInterface {
   private bgMessageHandler: BgMessageHandler | null = null;
+  private actionHandlers: ActionHandlers | null = null;
 
   constructor(app: FirebaseApp) {
     super(app);
@@ -163,8 +168,20 @@ export class SWController extends ControllerInterface {
 
     // Prevent other listeners from receiving the event
     event.stopImmediatePropagation();
-
     event.notification.close();
+
+    if (event.action) {
+      // User clicked on an action button in the message
+      const action: string = event.action;
+
+      if (this.actionHandlers && this.actionHandlers.hasOwnProperty(action)) {
+        // User has defined a handler for this action
+        // Call it
+        await this.actionHandlers[action](event);
+      }
+
+      return;
+    }
 
     const msgPayload: MessagePayload = event.notification.data[FCM_MSG];
     if (!msgPayload.notification) {
@@ -253,6 +270,37 @@ export class SWController extends ControllerInterface {
     }
 
     this.bgMessageHandler = callback;
+  }
+
+  /**
+   * Allows the user to set callbacks for action clicks.
+   *
+   * If your notification has two actions, "reply" and "ignore", an example
+   * actionHandlers object would be:
+   *
+   * {
+   *   "reply": (event) => {
+   *     console.log("reply action clicked")
+   *   },
+   *   "ignore": (event) =>  {
+   *     console.log("ignore action clicked")
+   *   }
+   * }
+   */
+  setActionHandlers(actionHandlers: ActionHandlers): void {
+    if (actionHandlers == null || typeof actionHandlers !== 'object') {
+      throw errorFactory.create(ERROR_CODES.ACTION_HANDLERS_OBJECT_EXPECTED);
+    }
+
+    for (const key of Object.keys(actionHandlers)) {
+      if (typeof actionHandlers[key] !== 'function') {
+        throw errorFactory.create(
+          ERROR_CODES.ACTION_HANDLERS_FUNCTION_EXPECTED
+        );
+      }
+    }
+
+    this.actionHandlers = actionHandlers;
   }
 
   /**

@@ -101,7 +101,8 @@ module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     basePath: '../',
 
-    files: getTestFiles(),
+    // files: getTestFiles(),
+    files: ['packages/messaging/test/**/*.test.ts'],
 
     logLevel: config.LOG_INFO,
 

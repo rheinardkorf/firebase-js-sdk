@@ -47,6 +47,7 @@ export default [
     input: 'index.node.ts',
     output: [{ file: pkg.main, format: 'cjs' }],
     plugins,
-    external: id => [...deps, 'util'].some(dep => id.startsWith(dep))
+    external: id =>
+      [...deps, 'util'].some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

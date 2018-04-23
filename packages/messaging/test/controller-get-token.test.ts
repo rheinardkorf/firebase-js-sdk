@@ -132,7 +132,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
   it('should throw on unsupported browsers', () => {
     sandbox
-      .stub(WindowController.prototype, 'isSupported_')
+      .stub(WindowController, 'isSupported_')
       .callsFake(() => false);
 
     const messagingService = new WindowController(app);

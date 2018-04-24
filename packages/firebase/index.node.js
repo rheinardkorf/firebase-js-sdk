@@ -14,4 +14,22 @@
  * limitations under the License.
  */
 
-import '@firebase/firestore';
+var firebase = require('@firebase/app').default;
+require('./auth');
+require('./database');
+require('@firebase/polyfill');
+
+var Storage = require('dom-storage');
+var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+
+firebase.INTERNAL.extendNamespace({
+  INTERNAL: {
+    node: {
+      localStorage: new Storage(null, { strict: true }),
+      sessionStorage: new Storage(null, { strict: true }),
+      XMLHttpRequest: XMLHttpRequest
+    }
+  }
+});
+
+module.exports = firebase;

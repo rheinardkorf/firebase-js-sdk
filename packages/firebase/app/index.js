@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 
-import '@firebase/messaging';
+require('@firebase/polyfill');
+module.exports = require('@firebase/app').default;

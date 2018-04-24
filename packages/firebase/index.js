@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import firebase from '../app';
+var firebase = require('./app');
+require('./auth');
+require('./database');
+require('./messaging');
+require('./storage');
 
-import '../auth';
-import '../database';
-import '../storage';
-
-export default firebase;
+module.exports = firebase;

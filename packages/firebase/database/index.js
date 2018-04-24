@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-import '@firebase/storage';
+module.exports = require('@firebase/database');

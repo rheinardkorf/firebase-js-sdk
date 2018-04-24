@@ -88,8 +88,8 @@ const sauceLabsBrowsers = {
   // Desktop
   Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
   Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
-  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest'),
-  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest')
+  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest')
+  // Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest'),
   // IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', 'latest'),
 
   // Mobile

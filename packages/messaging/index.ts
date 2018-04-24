@@ -76,7 +76,7 @@ declare module '@firebase/app-types' {
 /**
  * Checks to see if the required APIs exist.
  */
-function isWindowControllerSupported(): boolean {
+export function isWindowControllerSupported(): boolean {
   return (
     'serviceWorker' in navigator &&
     'PushManager' in window &&
@@ -90,7 +90,7 @@ function isWindowControllerSupported(): boolean {
 /**
  * Checks to see if the required APIs exist within SW Context.
  */
-function isSWControllerSupported(): boolean {
+export function isSWControllerSupported(): boolean {
   return (
     'PushManager' in self &&
     'Notification' in self &&
